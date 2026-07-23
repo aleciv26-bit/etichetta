@@ -1,3 +1,5 @@
+import { translateText } from '../utils/translate';
+import { useState, useEffect } from 'react';
 import { Recycle } from 'lucide-react';
 import { wineData } from '@/config/wineData';
 import { translations, type LanguageCode } from '@/i18n/translations';
@@ -25,10 +27,10 @@ export default function PackagingSection({ lang }: PackagingSectionProps) {
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
                 <p className="font-semibold text-stone-800">
-                  {item.name} — {item.material}
+                  <AutoTranslate text={item.name} targetLang={lang} /> — <AutoTranslate text={item.material} targetLang={lang} />
                 </p>
                 <p className="mt-0.5 text-sm text-stone-500">
-                  {t.component}: {item.name} · {t.material}: {item.material}
+                  {t.component}: <AutoTranslate text={item.name} targetLang={lang} /> · {t.material}: <AutoTranslate text={item.material} targetLang={lang} />
                 </p>
               </div>
               <span className="shrink-0 rounded-lg bg-emerald-100 px-2.5 py-1 font-mono text-xs font-semibold text-emerald-700">
@@ -40,7 +42,10 @@ export default function PackagingSection({ lang }: PackagingSectionProps) {
                 {t.disposalInstructions}
               </p>
               <p className="mt-1 text-sm text-stone-600">
-                {item.disposal[lang]}
+                <AutoTranslate 
+                  text={typeof item.disposal === 'string' ? item.disposal : (item.disposal['it'] || item.disposal[lang])} 
+                  targetLang={lang} 
+                />
               </p>
             </div>
           </div>
@@ -48,4 +53,24 @@ export default function PackagingSection({ lang }: PackagingSectionProps) {
       </div>
     </div>
   );
+}
+
+function AutoTranslate({ text, targetLang }: { text: string; targetLang: string }) {
+  const [translatedText, setTranslatedText] = useState(text);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (targetLang === 'it') {
+      setTranslatedText(text);
+      return;
+    }
+    
+    translateText(text, targetLang).then((res) => {
+      if (isMounted) setTranslatedText(res);
+    });
+
+    return () => { isMounted = false; };
+  }, [text, targetLang]);
+
+  return <>{translatedText}</>;
 }
