@@ -1,3 +1,5 @@
+import { translateText } from './utils/translate';
+import { useState, useEffect } from 'react';
 import { useState } from 'react';
 import {
   Droplets,
@@ -86,8 +88,8 @@ function App() {
               <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
                 {t.allergens}
               </p>
-              <p className="text-sm font-medium text-amber-800">
-                {wineData.allergens}
+              <p className="text-amber-800 font-medium">
+                <AutoTranslate text={wineData.allergens} targetLang={currentLanguage} />
               </p>
             </div>
           </div>
@@ -99,8 +101,8 @@ function App() {
             <Leaf className="h-5 w-5 text-stone-400" />
             <h2 className="text-lg font-bold text-stone-900">{t.ingredients}</h2>
           </div>
-          <p className="text-sm leading-relaxed text-stone-600">
-            {wineData.ingredients}
+         <p className="text-gray-700">
+            <AutoTranslate text={wineData.ingredients} targetLang={currentLanguage} />
           </p>
         </section>
 
@@ -177,6 +179,26 @@ function App() {
       </main>
     </div>
   );
+  // Componente di supporto per tradurre qualsiasi testo al volo
+function AutoTranslate({ text, targetLang }: { text: string; targetLang: string }) {
+  const [translatedText, setTranslatedText] = useState(text);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (targetLang === 'it') {
+      setTranslatedText(text);
+      return;
+    }
+    
+    translateText(text, targetLang).then((res) => {
+      if (isMounted) setTranslatedText(res);
+    });
+
+    return () => { isMounted = false; };
+  }, [text, targetLang]);
+
+  return <>{translatedText}</>;
+}
 }
 
 export default App;
